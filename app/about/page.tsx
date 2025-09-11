@@ -8,10 +8,10 @@ import Link from "next/link"
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
       <Navbar />
 
-      <main className="pt-20 pb-16">
+      <main className="flex-1 pt-20 pb-16">
         <div className="max-w-6xl mx-auto px-4">
 
           {/* Developer Info Section */}
@@ -86,15 +86,15 @@ export default function AboutPage() {
             </Card>
           </div>
 
-          {/* Footer */}
-          <div className="text-center py-8 border-t">
-            <div className="flex items-center justify-center gap-2 text-muted-foreground">
-              <Coffee className="h-4 w-4" />
-              <span>Built by a student, for students 💙</span>
-            </div>
-          </div>
         </div>
       </main>
+
+      <footer className="text-center py-6 border-t">
+        <div className="flex items-center justify-center gap-2 text-muted-foreground">
+          <Coffee className="h-4 w-4" />
+          <span>Built by a student, for students 💙</span>
+        </div>
+      </footer>
     </div>
   )
 }

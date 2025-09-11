@@ -24,10 +24,10 @@ export default function HomePage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <main className="pt-20 pb-8">
+      <main className="flex-1 pt-20 pb-8">
         <div className="max-w-4xl mx-auto px-4">
           <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8">
             <div className="order-2 lg:order-1">
@@ -39,13 +39,13 @@ export default function HomePage() {
           </div>
         </div>
       </main>
-      {/* Footer */}
-          <div className="text-center py-8 border-t">
-            <div className="flex items-center justify-center gap-2 text-muted-foreground">
-              <Coffee className="h-4 w-4" />
-              <span>Built by a student, for students 💙</span>
-            </div>
-          </div>
+
+      <footer className="text-center py-6 border-t">
+        <div className="flex items-center justify-center gap-2 text-muted-foreground">
+          <Coffee className="h-4 w-4" />
+          <span>Built by a student, for students 💙</span>
+        </div>
+      </footer>
     </div>
   )
 }
