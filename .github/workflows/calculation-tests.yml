@@ -24,18 +24,21 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20.x'
-        cache: 'npm'
+        cache: 'pnpm'
+
+    - name: Enable corepack
+      run: corepack enable
 
     - name: Install dependencies
-      run: npm ci
+      run: pnpm install --frozen-lockfile
 
     - name: Run calculation tests with coverage
-      run: npm run test:coverage -- --reporter=verbose lib/attendance-calculations
+      run: pnpm run test:coverage:attendance
 
     - name: Verify coverage thresholds for calculations
       run: |
         echo "Verifying calculation utilities have ≥90% coverage..."
-        npm run test:coverage -- --reporter=json lib/attendance-calculations | \
+        pnpm run test:coverage:attendance -- --reporter=json | \
         node -e "
           const stdin = process.stdin;
           let data = '';
@@ -43,7 +46,10 @@ jobs:
           stdin.on('end', () => {
             try {
               const coverage = JSON.parse(data);
-              const calcs = coverage.coverageMap?.['lib/attendance-calculations.ts'];
+              // Attempt to find coverage entry; structure may vary, fallback to any key containing attendance-calculations
+              const keys = Object.keys(coverage.coverageMap || {});
+              const key = keys.find(k => k.endsWith('lib/attendance-calculations.ts') || k.includes('attendance-calculations'));
+              const calcs = key ? coverage.coverageMap[key] : null;
               if (!calcs) {
                 console.log('❌ Coverage data not found for attendance-calculations.ts');
                 process.exit(1);
