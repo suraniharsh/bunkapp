@@ -30,6 +30,15 @@ jobs:
         version: 10.17.1
         run_install: false
 
+    - name: Fallback install pnpm (if missing)
+      run: |
+        if ! command -v pnpm >/dev/null 2>&1; then
+          echo "pnpm not found from action-setup; installing globally via npm";
+          npm i -g pnpm@10.17.1;
+        else
+          echo "pnpm already available";
+        fi
+
     - name: Enable corepack
       run: corepack enable
 
@@ -79,6 +88,15 @@ jobs:
       with:
         version: 10.17.1
         run_install: false
+
+    - name: Fallback install pnpm (if missing)
+      run: |
+        if ! command -v pnpm >/dev/null 2>&1; then
+          echo "pnpm not found from action-setup; installing globally via npm";
+          npm i -g pnpm@10.17.1;
+        else
+          echo "pnpm already available";
+        fi
 
     - name: Enable corepack
       run: corepack enable
