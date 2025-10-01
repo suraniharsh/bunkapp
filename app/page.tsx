@@ -5,12 +5,7 @@ import { Navbar } from "@/components/navbar"
 import { InputCard } from "@/components/input-card"
 import { ResultCard } from "@/components/result-card"
 import { Coffee } from "lucide-react"
-
-interface AttendanceData {
-  totalLectures: number
-  attendedLectures: number
-  attendanceCriteria: number
-}
+import type { AttendanceData } from "@/lib/attendance-calculations"
 
 export default function HomePage() {
   const [attendanceData, setAttendanceData] = useState<AttendanceData>({

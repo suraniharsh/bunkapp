@@ -7,13 +7,10 @@ import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { BookOpen, Users, Target } from "lucide-react"
+import type { AttendanceData } from "@/lib/attendance-calculations"
 
 interface InputCardProps {
-  onInputChange?: (data: {
-    totalLectures: number
-    attendedLectures: number
-    attendanceCriteria: number
-  }) => void
+  onInputChange?: (data: AttendanceData) => void
 }
 
 interface StoredInputData {
@@ -51,7 +48,7 @@ export function InputCard({ onInputChange }: InputCardProps) {
         attendanceCriteria,
       })
     }
-  }, [totalLectures, attendedLectures, attendanceCriteria, isInitialized])
+  }, [totalLectures, attendedLectures, attendanceCriteria, isInitialized, setStoredData])
 
   useEffect(() => {
     if (isInitialized && onInputChange) {
@@ -128,9 +125,8 @@ export function InputCard({ onInputChange }: InputCardProps) {
             placeholder="40"
             value={attendedLectures}
             onChange={(e) => handleAttendedLecturesChange(e.target.value)}
-            className={`h-10 rounded-md border bg-input hover:border-ring focus:border-ring transition-colors ${
-              isAttendedExceedsTotal ? "border-destructive focus:border-destructive" : "border-input"
-            }`}
+            className={`h-10 rounded-md border bg-input hover:border-ring focus:border-ring transition-colors ${isAttendedExceedsTotal ? "border-destructive focus:border-destructive" : "border-input"
+              }`}
           />
           {isAttendedExceedsTotal && (
             <p className="text-sm text-destructive">Attended lectures cannot exceed total lectures</p>

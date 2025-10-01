@@ -142,7 +142,56 @@ mustAttend = Math.ceil((requiredPercentage * totalLectures - attendedLectures) /
 3. The theme provider will automatically handle the switching
 
 ### Modifying Calculations
-Edit the `calculateAttendance` function in `components/result-card.tsx` to adjust the calculation logic.
+Edit the calculation functions in `lib/attendance-calculations.ts` to adjust the calculation logic.
+
+## 🧪 Testing
+
+This project includes comprehensive unit tests for all calculation utilities to ensure accuracy and reliability.
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test
+
+# Run tests once
+npm run test:run
+
+# Run tests with coverage report
+npm run test:coverage
+
+# Run tests with UI
+npm run test:ui
+```
+
+### Test Coverage
+
+Our test suite maintains ≥90% coverage for calculation utilities, covering:
+
+- **Normal cases**: Standard attendance scenarios
+- **Edge cases**: Zero lectures, perfect attendance, impossible requirements
+- **Boundary conditions**: Exact thresholds, minimum/maximum values
+- **Invalid inputs**: Negative numbers, impossible scenarios
+
+### Test Structure
+
+```
+src/__tests__/
+├── attendance-calculations.test.ts  # Core calculation logic tests
+└── setup.ts                        # Test environment setup
+```
+
+### Coverage Requirements
+
+- **Branches**: ≥90%
+- **Functions**: ≥90% 
+- **Lines**: ≥90%
+- **Statements**: ≥90%
+
+All calculation utilities in `lib/attendance-calculations.ts` maintain 100% test coverage.
 
 ## 🤝 Contributing
 
