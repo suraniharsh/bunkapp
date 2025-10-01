@@ -48,7 +48,7 @@ export function InputCard({ onInputChange }: InputCardProps) {
         attendanceCriteria,
       })
     }
-  }, [totalLectures, attendedLectures, attendanceCriteria, isInitialized])
+  }, [totalLectures, attendedLectures, attendanceCriteria, isInitialized, setStoredData])
 
   useEffect(() => {
     if (isInitialized && onInputChange) {
