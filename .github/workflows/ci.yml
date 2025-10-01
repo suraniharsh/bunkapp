@@ -24,6 +24,12 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'pnpm'
 
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10.17.1
+        run_install: false
+
     - name: Enable corepack
       run: corepack enable
 
@@ -67,6 +73,12 @@ jobs:
       with:
         node-version: '20.x'
         cache: 'pnpm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10.17.1
+        run_install: false
 
     - name: Enable corepack
       run: corepack enable
