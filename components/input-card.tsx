@@ -20,64 +20,76 @@ interface StoredInputData {
 }
 
 export function InputCard({ onInputChange }: InputCardProps) {
-  const [totalLectures, setTotalLectures] = useState<string>("")
-  const [attendedLectures, setAttendedLectures] = useState<string>("")
-  const [attendanceCriteria, setAttendanceCriteria] = useState<number[]>([75])
-  const [isInitialized, setIsInitialized] = useState(false)
+  // Form states
+  const [totalLectures, setTotalLectures] = useState<string>("");
+  const [attendedLectures, setAttendedLectures] = useState<string>("");
+  const [attendanceCriteria, setAttendanceCriteria] = useState<number[]>([75]);
 
-  const [errors, setErrors] = useState<{ total?: string; attended?: string }>({})
+  // Tracks if component is initialized with localStorage values
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  const [storedData, setStoredData] = useLocalStorage<StoredInputData>("bunkapp-inputs", {
-    totalLectures: "",
-    attendedLectures: "",
-    attendanceCriteria: [75],
-  })
+  // Validation errors for form inputs
+  const [errors, setErrors] = useState<{ total?: string; attended?: string }>(
+    {}
+  );
 
-  // Use ref to store the latest onInputChange callback
-  const onInputChangeRef = useRef(onInputChange)
+  // Local storage hook to persist data
+  const [storedData, setStoredData] = useLocalStorage<StoredInputData>(
+    "bunkapp-inputs",
+    {
+      totalLectures: "",
+      attendedLectures: "",
+      attendanceCriteria: [75],
+    }
+  );
+
+  // Ref to store the latest onInputChange callback (avoids stale closures)
+  const onInputChangeRef = useRef(onInputChange);
   useEffect(() => {
-    onInputChangeRef.current = onInputChange
-  }, [onInputChange])
+    onInputChangeRef.current = onInputChange;
+  }, [onInputChange]);
 
+  // Initialize state from localStorage on first load
   useEffect(() => {
     if (!isInitialized && storedData) {
-      setTotalLectures(storedData.totalLectures || "")
-      setAttendedLectures(storedData.attendedLectures || "")
-      setAttendanceCriteria(storedData.attendanceCriteria || [75])
-      setIsInitialized(true)
+      setTotalLectures(storedData.totalLectures || "");
+      setAttendedLectures(storedData.attendedLectures || "");
+      setAttendanceCriteria(storedData.attendanceCriteria || [75]);
+      setIsInitialized(true);
     }
-  }, [storedData, isInitialized])
+  }, [storedData, isInitialized]);
 
-  // Save to localStorage with a ref to prevent loops
-  const saveTimeoutRef = useRef<NodeJS.Timeout>()
+  // Debounced save to localStorage when input values change
+  const saveTimeoutRef = useRef<NodeJS.Timeout>();
   useEffect(() => {
     if (isInitialized) {
       // Debounce localStorage writes to prevent excessive updates
       if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current)
+        clearTimeout(saveTimeoutRef.current);
       }
-      
+
       saveTimeoutRef.current = setTimeout(() => {
         const newData = {
           totalLectures,
           attendedLectures,
           attendanceCriteria,
-        }
-        
+        };
+
         // Only update if data actually changed
         if (JSON.stringify(storedData) !== JSON.stringify(newData)) {
-          setStoredData(newData)
+          setStoredData(newData);
         }
-      }, 300) // 300ms debounce
-      
+      }, 300); // 300ms debounce
+
       return () => {
         if (saveTimeoutRef.current) {
-          clearTimeout(saveTimeoutRef.current)
+          clearTimeout(saveTimeoutRef.current);
         }
-      }
+      };
     }
-  }, [totalLectures, attendedLectures, attendanceCriteria, isInitialized])
+  }, [totalLectures, attendedLectures, attendanceCriteria, isInitialized]);
 
+  // Validation + callback trigger when input changes
   useEffect(() => {
     if (isInitialized && onInputChangeRef.current) {
       const total = Number.parseInt(totalLectures) || 0;
@@ -86,10 +98,12 @@ export function InputCard({ onInputChange }: InputCardProps) {
 
       let newErrors: { total?: string; attended?: string } = {};
 
+      // Validation rules
       if (!totalLectures) newErrors.total = "Total lectures is required";
       else if (total <= 0) newErrors.total = "Enter a number greater than 0";
 
-      if (!attendedLectures) newErrors.attended = "Attended lectures is required";
+      if (!attendedLectures)
+        newErrors.attended = "Attended lectures is required";
       else if (attended < 0) newErrors.attended = "Enter a valid number";
       else if (attended > total)
         newErrors.attended = "Attended cannot exceed total lectures";
@@ -102,46 +116,53 @@ export function InputCard({ onInputChange }: InputCardProps) {
         return prev;
       });
 
+      // If no errors, call parent callback with parsed values
       if (Object.keys(newErrors).length === 0) {
         onInputChangeRef.current({
           totalLectures: total,
           attendedLectures: attended,
           attendanceCriteria: criteria,
-        })
+        });
       }
     }
-  }, [totalLectures, attendedLectures, attendanceCriteria, isInitialized])
+  }, [totalLectures, attendedLectures, attendanceCriteria, isInitialized]);
 
+  // Handlers for controlled inputs
   const handleTotalLecturesChange = (value: string) => {
     // Only allow positive numbers
     if (value === "" || (/^\d+$/.test(value) && Number.parseInt(value) >= 0)) {
-      setTotalLectures(value)
+      setTotalLectures(value);
     }
-  }
+  };
 
   const handleAttendedLecturesChange = (value: string) => {
     // Only allow positive numbers
     if (value === "" || (/^\d+$/.test(value) && Number.parseInt(value) >= 0)) {
-      setAttendedLectures(value)
+      setAttendedLectures(value);
     }
-  }
+  };
 
   const handleCriteriaChange = (value: number[]) => {
-    setAttendanceCriteria(value)
-  }
+    setAttendanceCriteria(value);
+  };
 
-  // Validation helpers
-  const totalLecturesNum = Number.parseInt(totalLectures) || 0
-  const attendedLecturesNum = Number.parseInt(attendedLectures) || 0
-  const isAttendedExceedsTotal = attendedLecturesNum > totalLecturesNum && totalLecturesNum > 0
+  // Derived values for validation and UI
+  const totalLecturesNum = Number.parseInt(totalLectures) || 0;
+  const attendedLecturesNum = Number.parseInt(attendedLectures) || 0;
+  const isAttendedExceedsTotal =
+    attendedLecturesNum > totalLecturesNum && totalLecturesNum > 0;
 
   return (
     <Card className="p-6 rounded-xl bg-card border border-border shadow-sm">
       <div className="space-y-6">
+        {/* Total Lectures Input */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-muted-foreground" />
-            <Label htmlFor="total-lectures" className="text-sm font-medium text-foreground">
+            <Label
+              htmlFor="total-lectures"
+              className="text-sm font-medium text-foreground"
+            >
               Total Lectures
             </Label>
           </div>
@@ -154,16 +175,24 @@ export function InputCard({ onInputChange }: InputCardProps) {
             onChange={(e) => handleTotalLecturesChange(e.target.value)}
             className="h-10 rounded-md border border-input bg-input hover:border-ring focus:border-ring transition-colors"
           />
-          {errors.total && <p className="text-sm text-destructive">{errors.total}</p>}
+          {errors.total && (
+            <p className="text-sm text-destructive">{errors.total}</p>
+          )}
           {totalLecturesNum === 0 && totalLectures !== "" && (
-            <p className="text-sm text-destructive">Please enter a valid number</p>
+            <p className="text-sm text-destructive">
+              Please enter a valid number
+            </p>
           )}
         </div>
 
+        {/* Attended Lectures Input */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" />
-            <Label htmlFor="attended-lectures" className="text-sm font-medium text-foreground">
+            <Label
+              htmlFor="attended-lectures"
+              className="text-sm font-medium text-foreground"
+            >
               Attended Lectures
             </Label>
           </div>
@@ -174,25 +203,39 @@ export function InputCard({ onInputChange }: InputCardProps) {
             placeholder="40"
             value={attendedLectures}
             onChange={(e) => handleAttendedLecturesChange(e.target.value)}
-            className={`h-10 rounded-md border bg-input hover:border-ring focus:border-ring transition-colors ${isAttendedExceedsTotal ? "border-destructive focus:border-destructive" : "border-input"
-              }`}
+            className={`h-10 rounded-md border bg-input hover:border-ring focus:border-ring transition-colors ${
+              isAttendedExceedsTotal
+                ? "border-destructive focus:border-destructive"
+                : "border-input"
+            }`}
           />
-          {errors.attended && <p className="text-sm text-destructive">{errors.attended}</p>}
+          {errors.attended && (
+            <p className="text-sm text-destructive">{errors.attended}</p>
+          )}
           {isAttendedExceedsTotal && (
-            <p className="text-sm text-destructive">Attended lectures cannot exceed total lectures</p>
+            <p className="text-sm text-destructive">
+              Attended lectures cannot exceed total lectures
+            </p>
           )}
         </div>
 
+        {/* Attendance Criteria Slider */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Target className="h-4 w-4 text-muted-foreground" />
-            <Label className="text-sm font-medium text-foreground">Attendance Criteria</Label>
+            <Label className="text-sm font-medium text-foreground">
+              Attendance Criteria
+            </Label>
           </div>
 
           <div className="bg-muted rounded-lg p-4 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Required percentage</span>
-              <span className="text-lg font-semibold text-foreground">{attendanceCriteria[0]}%</span>
+              <span className="text-sm text-muted-foreground">
+                Required percentage
+              </span>
+              <span className="text-lg font-semibold text-foreground">
+                {attendanceCriteria[0]}%
+              </span>
             </div>
 
             <div className="px-2">
@@ -205,7 +248,7 @@ export function InputCard({ onInputChange }: InputCardProps) {
                 className="w-full"
               />
             </div>
-
+            {/* Slider min/max indicators */}
             <div className="flex justify-between text-xs text-muted-foreground px-2">
               <span>10%</span>
               <span>100%</span>
@@ -213,18 +256,23 @@ export function InputCard({ onInputChange }: InputCardProps) {
           </div>
         </div>
 
-        {totalLecturesNum > 0 && attendedLecturesNum >= 0 && !isAttendedExceedsTotal && (
-          <div className="bg-muted/50 rounded-lg p-4 border border-border">
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">Current Status</p>
-              <p className="text-sm text-muted-foreground">
-                {attendedLecturesNum} of {totalLecturesNum} lectures attended, targeting {attendanceCriteria[0]}%
-                attendance
-              </p>
+        {/* Status Preview - only shown when inputs are valid */}
+        {totalLecturesNum > 0 &&
+          attendedLecturesNum >= 0 &&
+          !isAttendedExceedsTotal && (
+            <div className="bg-muted/50 rounded-lg p-4 border border-border">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-foreground">
+                  Current Status
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {attendedLecturesNum} of {totalLecturesNum} lectures attended,
+                  targeting {attendanceCriteria[0]}% attendance
+                </p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </Card>
-  )
+  );
 }
