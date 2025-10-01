@@ -125,9 +125,8 @@ export function InputCard({ onInputChange }: InputCardProps) {
             placeholder="40"
             value={attendedLectures}
             onChange={(e) => handleAttendedLecturesChange(e.target.value)}
-            className={`h-10 rounded-md border bg-input hover:border-ring focus:border-ring transition-colors ${
-              isAttendedExceedsTotal ? "border-destructive focus:border-destructive" : "border-input"
-            }`}
+            className={`h-10 rounded-md border bg-input hover:border-ring focus:border-ring transition-colors ${isAttendedExceedsTotal ? "border-destructive focus:border-destructive" : "border-input"
+              }`}
           />
           {isAttendedExceedsTotal && (
             <p className="text-sm text-destructive">Attended lectures cannot exceed total lectures</p>
