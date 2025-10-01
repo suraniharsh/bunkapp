@@ -7,13 +7,10 @@ import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { BookOpen, Users, Target } from "lucide-react"
+import type { AttendanceData } from "@/lib/attendance-calculations"
 
 interface InputCardProps {
-  onInputChange?: (data: {
-    totalLectures: number
-    attendedLectures: number
-    attendanceCriteria: number
-  }) => void
+  onInputChange?: (data: AttendanceData) => void
 }
 
 interface StoredInputData {

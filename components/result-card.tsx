@@ -5,93 +5,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { TrendingUp, TrendingDown, CheckCircle, AlertTriangle } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-
-interface AttendanceData {
-  totalLectures: number
-  attendedLectures: number
-  attendanceCriteria: number
-}
+import { calculateAttendance, type AttendanceData, type CalculationResult } from "@/lib/attendance-calculations"
 
 interface ResultCardProps {
   attendanceData: AttendanceData
-}
-
-interface CalculationResult {
-  currentAttendance: number
-  canBunk: number
-  mustAttend: number
-  status: "safe" | "warning" | "critical" | "perfect" | "awaiting"
-  message: string
-}
-
-function calculateAttendance(data: AttendanceData): CalculationResult {
-  const { totalLectures, attendedLectures, attendanceCriteria } = data
-
-  // Handle edge cases
-  if (totalLectures === 0) {
-    return {
-      currentAttendance: 0,
-      canBunk: 0,
-      mustAttend: 0,
-      status: "awaiting",
-      message: "Enter your lecture details to see results",
-    }
-  }
-
-  if (attendedLectures > totalLectures) {
-    return {
-      currentAttendance: 0,
-      canBunk: 0,
-      mustAttend: 0,
-      status: "awaiting",
-      message: "Please check your input values",
-    }
-  }
-
-  const currentAttendance = (attendedLectures / totalLectures) * 100
-  const requiredAttendance = attendanceCriteria / 100
-
-  // Perfect attendance
-  if (currentAttendance === 100) {
-    return {
-      currentAttendance,
-      canBunk: attendanceCriteria === 100 ? 0 : Math.floor(totalLectures * (1 - requiredAttendance)),
-      mustAttend: 0,
-      status: "perfect",
-      message: "Perfect attendance! Impressive discipline.",
-    }
-  }
-
-  // Above criteria - can bunk some lectures
-  if (currentAttendance >= attendanceCriteria) {
-    // Calculate how many lectures can be bunked while maintaining criteria
-    let canBunk = 0
-    if (attendanceCriteria < 100) {
-      // Formula: (attended - required_percentage * (total + bunked)) >= 0
-      // Solving for bunked: bunked <= (attended - required_percentage * total) / required_percentage
-      canBunk = Math.floor((attendedLectures - requiredAttendance * totalLectures) / requiredAttendance)
-      canBunk = Math.max(0, canBunk)
-    }
-
-    return {
-      currentAttendance,
-      canBunk,
-      mustAttend: 0,
-      status: currentAttendance >= attendanceCriteria + 10 ? "safe" : "warning",
-      message: canBunk > 0 ? "On track! You can bunk responsibly." : "You're at the threshold. Attend carefully.",
-    }
-  }
-
-  // Below criteria - must attend more lectures
-  const lecturesNeeded = Math.ceil((requiredAttendance * totalLectures - attendedLectures) / (1 - requiredAttendance))
-
-  return {
-    currentAttendance,
-    canBunk: 0,
-    mustAttend: Math.max(0, lecturesNeeded),
-    status: "critical",
-    message: "Careful—you're below the threshold. Attend more lectures.",
-  }
 }
 
 export function ResultCard({ attendanceData }: ResultCardProps) {
