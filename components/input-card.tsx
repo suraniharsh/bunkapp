@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -25,11 +25,19 @@ export function InputCard({ onInputChange }: InputCardProps) {
   const [attendanceCriteria, setAttendanceCriteria] = useState<number[]>([75])
   const [isInitialized, setIsInitialized] = useState(false)
 
+  const [errors, setErrors] = useState<{ total?: string; attended?: string }>({})
+
   const [storedData, setStoredData] = useLocalStorage<StoredInputData>("bunkapp-inputs", {
     totalLectures: "",
     attendedLectures: "",
     attendanceCriteria: [75],
   })
+
+  // Use ref to store the latest onInputChange callback
+  const onInputChangeRef = useRef(onInputChange)
+  useEffect(() => {
+    onInputChangeRef.current = onInputChange
+  }, [onInputChange])
 
   useEffect(() => {
     if (!isInitialized && storedData) {
@@ -40,29 +48,69 @@ export function InputCard({ onInputChange }: InputCardProps) {
     }
   }, [storedData, isInitialized])
 
+  // Save to localStorage with a ref to prevent loops
+  const saveTimeoutRef = useRef<NodeJS.Timeout>()
   useEffect(() => {
     if (isInitialized) {
-      setStoredData({
-        totalLectures,
-        attendedLectures,
-        attendanceCriteria,
-      })
+      // Debounce localStorage writes to prevent excessive updates
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+      
+      saveTimeoutRef.current = setTimeout(() => {
+        const newData = {
+          totalLectures,
+          attendedLectures,
+          attendanceCriteria,
+        }
+        
+        // Only update if data actually changed
+        if (JSON.stringify(storedData) !== JSON.stringify(newData)) {
+          setStoredData(newData)
+        }
+      }, 300) // 300ms debounce
+      
+      return () => {
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current)
+        }
+      }
     }
-  }, [totalLectures, attendedLectures, attendanceCriteria, isInitialized, setStoredData])
+  }, [totalLectures, attendedLectures, attendanceCriteria, isInitialized])
 
   useEffect(() => {
-    if (isInitialized && onInputChange) {
-      const total = Number.parseInt(totalLectures) || 0
-      const attended = Number.parseInt(attendedLectures) || 0
-      const criteria = attendanceCriteria[0] || 75
+    if (isInitialized && onInputChangeRef.current) {
+      const total = Number.parseInt(totalLectures) || 0;
+      const attended = Number.parseInt(attendedLectures) || 0;
+      const criteria = attendanceCriteria[0] || 75;
 
-      onInputChange({
-        totalLectures: total,
-        attendedLectures: attended,
-        attendanceCriteria: criteria,
-      })
+      let newErrors: { total?: string; attended?: string } = {};
+
+      if (!totalLectures) newErrors.total = "Total lectures is required";
+      else if (total <= 0) newErrors.total = "Enter a number greater than 0";
+
+      if (!attendedLectures) newErrors.attended = "Attended lectures is required";
+      else if (attended < 0) newErrors.attended = "Enter a valid number";
+      else if (attended > total)
+        newErrors.attended = "Attended cannot exceed total lectures";
+
+      // only update errors if changed (prevents unnecessary re-renders)
+      setErrors((prev) => {
+        if (JSON.stringify(prev) !== JSON.stringify(newErrors)) {
+          return newErrors;
+        }
+        return prev;
+      });
+
+      if (Object.keys(newErrors).length === 0) {
+        onInputChangeRef.current({
+          totalLectures: total,
+          attendedLectures: attended,
+          attendanceCriteria: criteria,
+        })
+      }
     }
-  }, [totalLectures, attendedLectures, attendanceCriteria, isInitialized, onInputChange])
+  }, [totalLectures, attendedLectures, attendanceCriteria, isInitialized])
 
   const handleTotalLecturesChange = (value: string) => {
     // Only allow positive numbers
@@ -106,6 +154,7 @@ export function InputCard({ onInputChange }: InputCardProps) {
             onChange={(e) => handleTotalLecturesChange(e.target.value)}
             className="h-10 rounded-md border border-input bg-input hover:border-ring focus:border-ring transition-colors"
           />
+          {errors.total && <p className="text-sm text-destructive">{errors.total}</p>}
           {totalLecturesNum === 0 && totalLectures !== "" && (
             <p className="text-sm text-destructive">Please enter a valid number</p>
           )}
@@ -128,6 +177,7 @@ export function InputCard({ onInputChange }: InputCardProps) {
             className={`h-10 rounded-md border bg-input hover:border-ring focus:border-ring transition-colors ${isAttendedExceedsTotal ? "border-destructive focus:border-destructive" : "border-input"
               }`}
           />
+          {errors.attended && <p className="text-sm text-destructive">{errors.attended}</p>}
           {isAttendedExceedsTotal && (
             <p className="text-sm text-destructive">Attended lectures cannot exceed total lectures</p>
           )}
