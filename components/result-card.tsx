@@ -3,9 +3,11 @@
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { TrendingUp, TrendingDown, CheckCircle, AlertTriangle } from "lucide-react"
+import { TrendingUp, TrendingDown, CheckCircle, AlertTriangle, Share } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { calculateAttendance, type AttendanceData, type CalculationResult } from "@/lib/attendance-calculations"
+import { useToast } from "@/hooks/use-toast"
+import { generateShareText } from "@/util/clipboardTextGeneration"
 
 interface ResultCardProps {
   attendanceData: AttendanceData
@@ -13,6 +15,33 @@ interface ResultCardProps {
 
 export function ResultCard({ attendanceData }: ResultCardProps) {
   const result = calculateAttendance(attendanceData)
+  const { toast } = useToast()
+
+  const handleCopyResult = async () => {
+    if (!navigator.clipboard) {
+      toast({
+        title: "Copy failed",
+        description: "Clipboard not supported in this browser",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      const shareText = generateShareText(result, attendanceData)
+      await navigator.clipboard.writeText(shareText)
+      toast({
+        title: "Result copied!",
+        description: "Attendance summary copied to clipboard",
+      })
+    } catch (error) {
+      toast({
+        title: "Copy failed",
+        description: "Failed to copy result to clipboard",
+        variant: "destructive"
+      })
+    }
+  }
 
   const getStatusIcon = () => {
     switch (result.status) {
@@ -47,6 +76,18 @@ export function ResultCard({ attendanceData }: ResultCardProps) {
     <Card className="p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.02] relative">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold text-foreground">Your Results</h2>
+        {result.status !== "awaiting" && (
+          <Button
+            onClick={handleCopyResult}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2 hover:cursor-pointer hover: transition-colors"
+          >
+            <Share className="h-4 w-4" />
+            <span className="hidden sm:inline">Share Result</span>
+            <span className="sm:hidden">Share</span>
+          </Button>
+        )}
       </div>
 
       <div>
