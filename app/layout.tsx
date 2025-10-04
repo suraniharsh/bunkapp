@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/toaster"
 import { Suspense } from "react"
 
 import "./globals.css"
@@ -32,6 +33,7 @@ export default function RootLayout({
             <div className="flex-1">
               {children}
             </div>
+            <Toaster />
           </ThemeProvider>
         </Suspense>
         <Analytics />
